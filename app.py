@@ -1,6 +1,7 @@
 from flask import Flask, make_response, jsonify, request
 import telegram
 import json
+import re
 
 app = Flask(__name__)
 
@@ -13,8 +14,16 @@ bot_user_name = "@CommManagerBot"
 URL = "https://comm-manager-bot.herokuapp.com/"
 
 
+def get_link_list(text):
+    link_list = re.findall(r'(https?://\S+)', text)
+    return link_list
+
 def get_response(text):
-    response = "Thank you for sending me {}".format(text)
+    link_list = get_link_list(text)
+    response = 'These are the links you shared:\n'
+    for link in link_list:
+        response += link + '\n'
+
     return response
 
 @app.route("/")
@@ -43,7 +52,6 @@ def respond():
         chat_id = update.message.chat.id
         msg_id = update.message.message_id
         text = update.message.text.encode('utf-8').decode()
-        print("got text message :", text)
         response = get_response(text)
         bot.sendMessage(chat_id=chat_id, text=response, reply_to_message_id=msg_id)
 
