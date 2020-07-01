@@ -108,7 +108,7 @@ def get_response(update):
     # elif link_list == []:
     #     response = ""
     # return response
-    return "Thank you for saying".format(text)
+    return "Thank you for saying {}".format(text)
 
 @app.route("/")
 def home():
