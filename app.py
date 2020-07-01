@@ -4,6 +4,7 @@ import json
 import re
 import requests
 from bs4 import BeautifulSoup
+from bs4.element import Comment
 
 app = Flask(__name__)
 
@@ -20,17 +21,27 @@ def get_link_list(text):
     link_list = re.findall(r'(https?://\S+)', text)
     return link_list
 
+def tag_visible(element):
+    if element.parent.name in ['style', 'script', 'head', 'title', 'meta', '[document]']:
+        return False
+    if isinstance(element, Comment):
+        return False
+    return True
+
 def get_keywords(text):
     link_list = get_link_list(text)
     for link in link_list:
         r = requests.get(link)
         if r:
             # parses the request content using html5lib parser
-            soup = BeautifulSoup(r.content, 'html5lib') 
+            soup = BeautifulSoup(r.content, 'html.parser') 
             texts = soup.findAll(text=True)
             print("Text in link is:", texts)
+            visible_texts = filter(tag_visible, texts)  
+            text_string = u" ".join(t.strip() for t in visible_texts)
+            print("Final text string is", text_string)
     
-    return "success"
+    return text_string
 
 def get_response(text):
     link_list = get_link_list(text)
