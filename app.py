@@ -93,6 +93,7 @@ def get_response(update):
             user_object = UserData.query.filter_by(chat_id=chat_id).first()
             existing_keywords = json.loads(user_object.keywords)
         except:
+            db.session.rollback()
             existing_keywords = []
             user_object = UserData(chat_id=chat_id)
             db.session.add(user_object)
