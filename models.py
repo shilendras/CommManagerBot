@@ -3,8 +3,8 @@ from manage import db,app
 class UserData(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
-    # username = db.Column(db.String(64), index=True, unique=True)
-    # user_id = db.Column(db.Integer, index=True, unique=True)
+    username = db.Column(db.String(64))
+    user_id = db.Column(db.Integer)
     chat_id = db.Column(db.Integer)
     keywords = db.Column(db.Text, nullable=True)
 

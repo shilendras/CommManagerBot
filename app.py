@@ -83,8 +83,8 @@ def get_response(update):
 
     chat_id = update.message.chat.id
     print("Type of chat id is" ,type(chat_id))
-    # from_id = update['message']['from']['id']
-    # from_username = update['message']['from']['username']
+    from_id = update.message.from_user.id
+    from_username = update.message.from_user.username
     text = update.message.text.encode('utf-8').decode()
 
     link_list = get_link_list(text)
