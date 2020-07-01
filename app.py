@@ -82,7 +82,7 @@ def get_keywords(link_list):
 def get_response(update):
 
     chat_id = update.message.chat.id
-    print("Type of chat id is" type(chat_id))
+    print("Type of chat id is" ,type(chat_id))
     # from_id = update['message']['from']['id']
     # from_username = update['message']['from']['username']
     text = update.message.text.encode('utf-8').decode()
