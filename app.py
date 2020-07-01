@@ -89,10 +89,10 @@ def get_response(update):
 
     link_list = get_link_list(text)
     if not link_list == []:
-        user_object = UserData.query.filter_by(chat_id=chat_id).first()
-        if not user_object == None:
+        try:
+            user_object = UserData.query.filter_by(chat_id=chat_id).first()
             existing_keywords = json.loads(user_object.keywords)
-        else:
+        except:
             existing_keywords = []
             user_object = UserData(chat_id=chat_id)
             db.session.add(user_object)
