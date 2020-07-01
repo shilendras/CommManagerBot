@@ -91,13 +91,13 @@ def get_response(update):
     link_list = get_link_list(text)
     if not link_list == []:
         try:
-            user_object = UserData.query.filter_by(chat_id=chat_id).first()
+            user_object = UserData.query.filter_by(chat_id=chat_id, user_id=from_id).first()
             existing_keywords = json.loads(user_object.keywords)
         except Exception as e:
             print("exception is", e)
             db.session.rollback()
             existing_keywords = []
-            user_object = UserData(chat_id=chat_id)
+            user_object = UserData(chat_id=chat_id, user_id=from_id, username=from_username)
             db.session.add(user_object)
 
         new_keywords_tuple = get_keywords(link_list)
