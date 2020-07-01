@@ -6,6 +6,10 @@ import requests
 from bs4 import BeautifulSoup
 from bs4.element import Comment
 
+from nltk.tokenize import word_tokenize
+from nltk.corpus import stopwords
+from collections import Counter 
+
 app = Flask(__name__)
 
 global bot
@@ -28,20 +32,50 @@ def tag_visible(element):
         return False
     return True
 
+# function to clean the scrapped threat data and return a string 
+def clean_and_tokenize_data(data):
+
+    # removes all html tags
+    cleaner = re.compile('<.*?>')
+    data = re.sub(cleaner, '', data)
+
+    # removes all non words
+    data = re.sub("[^A-Za-z]", " ", data) 
+
+    # converts to lower case
+    data = data.lower()                   
+
+    # converts to list of words
+    data = word_tokenize(data)  
+
+
+    # removes all common words like 'a', 'the' etc          
+    data = [ word for word in data if word not in set(stopwords.words("english"))] 
+
+    return data
+
 def get_keywords(text):
     link_list = get_link_list(text)
+    final_text_string = ''
     for link in link_list:
         r = requests.get(link)
         if r:
             # parses the request content using html5lib parser
             soup = BeautifulSoup(r.content, 'html.parser') 
             texts = soup.findAll(text=True)
-            print("Text in link is:", texts)
             visible_texts = filter(tag_visible, texts)  
             text_string = u" ".join(t.strip() for t in visible_texts)
             print("Final text string is", text_string)
+            final_text_string += text_string
     
-    return text_string
+    cleaned_words_list = clean_and_tokenize_data(final_text_string)
+    counter = Counter(cleaned_words_list)
+    most_freq_words = counter.most_common(3)
+    words_str = ''
+    for most_freq in most_freq_words:
+         words_str += most_freq[0] + ", "
+    
+    return words_str
 
 def get_response(text):
     link_list = get_link_list(text)
