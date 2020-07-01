@@ -114,7 +114,6 @@ def respond():
     else:
         chat_id = update.message.chat.id
         msg_id = update.message.message_id
-        text = update.message.text.encode('utf-8').decode()
         response = get_response(update)
         bot.sendMessage(chat_id=chat_id, text=response, reply_to_message_id=msg_id)
 
