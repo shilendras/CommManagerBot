@@ -79,11 +79,8 @@ def get_keywords(link_list):
     
     return most_freq_words
 
-def get_response(update):
+def get_response(chat_id, msg_id, from_id, from_username, text):
     chat_id = update.message.chat.id
-    from_id = update['message']['from']['id']
-    from_username = update['message']['from']['username']
-    text = update.message.text.encode('utf-8').decode()
 
     link_list = get_link_list(text)
     if not link_list == []:
@@ -131,11 +128,14 @@ def respond():
     except ValueError:
         return make_response('Invalid request body', 400)
     else:
-        if not update.message == None:
+        if not update == None:
             chat_id = update.message.chat.id
             msg_id = update.message.message_id
-            response = get_response(update)
-        elif update.message == None:
+            from_id = update['message']['from']['id']
+            from_username = update['message']['from']['username']
+            text = update.message.text.encode('utf-8').decode()
+            response = get_response(chat_id, msg_id, from_id, from_username, text)
+        elif update == None:
             response = ""
 
         if not response == "":
