@@ -80,7 +80,6 @@ def get_keywords(link_list):
     return most_freq_words
 
 def get_response(chat_id, msg_id, from_id, from_username, text):
-    chat_id = update.message.chat.id
 
     link_list = get_link_list(text)
     if not link_list == []:
@@ -145,4 +144,4 @@ def respond():
 
     
 if __name__ == "__main__":
-    app.run()
+    app.run(threaded=True)
