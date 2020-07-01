@@ -92,7 +92,8 @@ def get_response(update):
         try:
             user_object = UserData.query.filter_by(chat_id=chat_id).first()
             existing_keywords = json.loads(user_object.keywords)
-        except:
+        except Exception as e:
+            print("exception is", e)
             db.session.rollback()
             existing_keywords = []
             user_object = UserData(chat_id=chat_id)
