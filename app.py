@@ -1,4 +1,5 @@
 from flask import Flask, make_response, jsonify, request
+from flask_sqlalchemy import SQLAlchemy
 import telegram
 import json
 import re
@@ -11,6 +12,11 @@ from nltk.corpus import stopwords
 from collections import Counter 
 
 app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] ='postgres://dhdbiabpoktcen:6b21775a670b9eeb8dc7ef4e12e5f87001f8c7fc224fe18b88858f862bbf1c56@ec2-107-22-7-9.compute-1.amazonaws.com:5432/d51gcce3c527k2'
+
+db = SQLAlchemy(app)
+
+from models import UserData
 
 global bot
 global TOKEN
@@ -75,18 +81,31 @@ def get_keywords(link_list):
 
 def get_response(update):
     chat_id = update.message.chat.id
-    msg_id = update.message.message_id
+    from_id = update.message['from']['id']
+    from_username = update.message['from']['username']
     text = update.message.text.encode('utf-8').decode()
 
     link_list = get_link_list(text)
     if not link_list == []:
-        keywords_tuple = get_keywords(link_list)
+        user_object = UserData.query.filter_by(chat_id=chat_id, from_id=from_id).first()
+        if not user_object == None:
+            existing_keywords = json.loads(user_object.keywords)
+        else:
+            existing_keywords = []
+            user_object = UserData(chat_id=chat_id, user_id=from_id, username=from_username)
+            db.session.add(user_object)
+
+        new_keywords_tuple = get_keywords(link_list)
         words_str = 'The top keywords in the links are: '
-        for keyword in keywords_tuple:
-            words_str += keyword[0] + ", "
+        for keyword_tuple in new_keywords_tuple:
+            existing_keywords.append(keyword_tuple[0])
+            words_str += keyword_tuple[0] + ", "
+        
+        user_object.keywords = json.dumps(existing_keywords)
+        db.session.commit()
         response = words_str
     elif link_list == []:
-        response = "You have not shared any links"
+        response = ""
     return response
 
 @app.route("/")
@@ -115,7 +134,8 @@ def respond():
         chat_id = update.message.chat.id
         msg_id = update.message.message_id
         response = get_response(update)
-        bot.sendMessage(chat_id=chat_id, text=response, reply_to_message_id=msg_id)
+        if not response == "":
+            bot.sendMessage(chat_id=chat_id, text=response, reply_to_message_id=msg_id)
 
     return 'ok'
 
