@@ -133,9 +133,11 @@ def respond():
 
     try:
         update = telegram.Update.de_json(request.get_json(force=True), bot)
+        message = telegram.Message.de_json(request.get_json(force=True), bot)
     except ValueError:
         return make_response('Invalid request body', 400)
     else:
+        print("Message is", message)
         chat_id = update.message.chat.id
         msg_id = update.message.message_id
         response = get_response(update)
