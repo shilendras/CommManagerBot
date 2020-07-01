@@ -137,7 +137,6 @@ def respond():
     except ValueError:
         return make_response('Invalid request body', 400)
     else:
-        print("Message is", message)
         chat_id = update.message.chat.id
         msg_id = update.message.message_id
         response = get_response(update)
