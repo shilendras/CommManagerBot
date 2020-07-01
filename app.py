@@ -88,22 +88,22 @@ def get_response(update):
 
     link_list = get_link_list(text)
     if not link_list == []:
-    #     user_object = UserData.query.filter_by(chat_id=chat_id, from_id=from_id).first()
-    #     if not user_object == None:
-    #         existing_keywords = json.loads(user_object.keywords)
-    #     else:
-    #         existing_keywords = []
-    #         user_object = UserData(chat_id=chat_id, user_id=from_id, username=from_username)
-    #         db.session.add(user_object)
+        user_object = UserData.query.filter_by(chat_id=chat_id).first()
+        if not user_object == None:
+            existing_keywords = json.loads(user_object.keywords)
+        else:
+            existing_keywords = []
+            user_object = UserData(chat_id=chat_id)
+            db.session.add(user_object)
 
         new_keywords_tuple = get_keywords(link_list)
         words_str = 'The top keywords in the links are: '
         for keyword_tuple in new_keywords_tuple:
-            # existing_keywords.append(keyword_tuple[0])
+            existing_keywords.append(keyword_tuple[0])
             words_str += keyword_tuple[0] + ", "
         
-    #     user_object.keywords = json.dumps(existing_keywords)
-    #     db.session.commit()
+        user_object.keywords = json.dumps(existing_keywords)
+        db.session.commit()
         response = words_str
     elif link_list == []:
         response = "No link shared"
