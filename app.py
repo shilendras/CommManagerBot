@@ -85,6 +85,7 @@ def get_response(update):
     print("Type of chat id is" ,type(chat_id))
     from_id = update.message.from_user.id
     from_username = update.message.from_user.username
+    print("From id and username is", from_username, from_id)
     text = update.message.text.encode('utf-8').decode()
 
     link_list = get_link_list(text)
@@ -133,7 +134,6 @@ def respond():
 
     try:
         update = telegram.Update.de_json(request.get_json(force=True), bot)
-        message = telegram.Message.de_json(request.get_json(force=True), bot)
     except ValueError:
         return make_response('Invalid request body', 400)
     else:
