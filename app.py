@@ -79,11 +79,14 @@ def get_response(update):
     text = update.message.text.encode('utf-8').decode()
 
     link_list = get_link_list(text)
-    keywords_tuple = get_keywords(link_list)
-    words_str = 'The top keywords in the links are: '
-    for keyword in keywords_tuple:
-         words_str += keyword[0] + ", "
-    response = words_str
+    if not link_list == []:
+        keywords_tuple = get_keywords(link_list)
+        words_str = 'The top keywords in the links are: '
+        for keyword in keywords_tuple:
+            words_str += keyword[0] + ", "
+        response = words_str
+    elif link_list == []:
+        response = "You have not shared any links"
     return response
 
 @app.route("/")
