@@ -84,7 +84,7 @@ def get_response(update):
     # chat_id = update.message.chat.id
     # from_id = update['message']['from']['id']
     # from_username = update['message']['from']['username']
-    # text = update.message.text.encode('utf-8').decode()
+    text = update.message.text.encode('utf-8').decode()
 
     # link_list = get_link_list(text)
     # if not link_list == []:
@@ -108,7 +108,7 @@ def get_response(update):
     # elif link_list == []:
     #     response = ""
     # return response
-    return "Just testing"
+    return "Thank you for saying".format(text)
 
 @app.route("/")
 def home():
