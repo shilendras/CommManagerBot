@@ -81,8 +81,8 @@ def get_keywords(link_list):
 
 def get_response(update):
     chat_id = update.message.chat.id
-    from_id = update.message['from']['id']
-    from_username = update.message['from']['username']
+    from_id = update.message.from.id
+    from_username = update.message.from.username
     text = update.message.text.encode('utf-8').decode()
 
     link_list = get_link_list(text)
