@@ -54,9 +54,9 @@ def clean_and_tokenize_data(data):
 
     return data
 
-def get_keywords(text):
-    link_list = get_link_list(text)
-    final_text_string = ''
+def get_keywords(link_list):
+
+    text_in_links = ''
     for link in link_list:
         r = requests.get(link)
         if r:
@@ -65,24 +65,21 @@ def get_keywords(text):
             texts = soup.findAll(text=True)
             visible_texts = filter(tag_visible, texts)  
             text_string = u" ".join(t.strip() for t in visible_texts)
-            print("Final text string is", text_string)
-            final_text_string += text_string
+            text_in_links += text_string
     
-    cleaned_words_list = clean_and_tokenize_data(final_text_string)
+    cleaned_words_list = clean_and_tokenize_data(text_in_links)
     counter = Counter(cleaned_words_list)
-    most_freq_words = counter.most_common(3)
-    words_str = ''
-    for most_freq in most_freq_words:
-         words_str += most_freq[0] + ", "
+    most_freq_words = counter.most_common(6)
     
-    return words_str
+    return most_freq_words
 
 def get_response(text):
     link_list = get_link_list(text)
-    response = 'These are the links you shared:\n'
-    for link in link_list:
-        response += link + '\n'
-
+    keywords_tuple = get_keywords(link_list)
+    words_str = 'The top keywords in the links are: '
+    for keyword in keywords_tuple:
+         words_str += keyword[0] + ", "
+    response = words_str
     return response
 
 @app.route("/")
