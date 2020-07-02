@@ -155,6 +155,14 @@ def handle_update(update):
         response = ""
 
     elif link_list == []:
+        tfidf_model_obj = ChatTfidf.query.filter_by(chat_id=chat_id).first()
+        tfidf_vectorizer = pickle.loads(tfidf_model_obj.tfidf_model)
+        cleaned_query_string = clean_up_text(text)
+        query_string_list = [cleaned_query_string]
+        query_tfidf_vector = tfidf_vectorizer.transform(query_string_list)
+        query_tfidf_array = query_tfidf_vector.toarray()[0]
+        print(query_tfidf_array)
+
         response = ""
 
     return response
@@ -184,9 +192,9 @@ def respond():
     else:
         chat_id = update.message.chat.id
         msg_id = update.message.message_id
+        # save_tfidf_group_models()
+        # save_user_models()
         response = handle_update(update)
-        save_tfidf_group_models()
-        save_user_models()
 
         if not response == "":
             bot.sendMessage(chat_id=chat_id, text=response, reply_to_message_id=msg_id)
