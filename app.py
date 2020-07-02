@@ -175,12 +175,12 @@ def handle_update(update):
         user_vectors_list = user_vector_dataframe['vector'].to_list()
         print("User vector array is", user_vectors_list)
         print("Type of user vector array is", type(user_vectors_list))
-        new_user_vectors_list = []
-        for user_vector_list in user_vectors_list:
-            user_vector_array = np.array(user_vector_list)
-            new_user_vectors_list.append(user_vector_array)
+        # new_user_vectors_list = []
+        # for user_vector_list in user_vectors_list:
+        #     user_vector_array = np.array(user_vector_list)
+        #     new_user_vectors_list.append(user_vector_array)
 
-        user_vectors_array = np.array(new_user_vectors_list)
+        user_vectors_array = np.array(user_vectors_list, dtype='object')
         print("User vector numpy array is", user_vectors_array)
         print("Type of user vector numpy array is", type(user_vectors_array))
 
