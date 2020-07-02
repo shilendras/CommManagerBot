@@ -50,7 +50,13 @@ def clean_up_text(text_string):
     text_string = re.sub("[^A-Za-z]", " ", text_string) 
 
     # converts to lower case
-    text_string = text_string.lower()                   
+    text_string = text_string.lower()
+
+    tokenized_words = word_tokenize(text_string)  
+    # removes all common words like 'a', 'the' etc          
+    tokenized_words = [ word for word in tokenized_words if word not in set(stopwords.words("english"))]
+
+    text_string = " ".join(word for word in tokenized_words)                    
 
     return text_string
 
@@ -70,9 +76,12 @@ def get_text_from_links(link_list):
         if r:
             # parses the request content using html parser
             soup = BeautifulSoup(r.content, 'html.parser') 
+            # finds all text in webpage
             texts = soup.findAll(text=True)
+            #filters out non visible text
             visible_texts = filter(tag_visible, texts)  
             text_string = u" ".join(t.strip() for t in visible_texts)
+            #clean up text by removing tags and non words
             cleaned_text = clean_up_text(text_string)
             final_text += cleaned_text
     
