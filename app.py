@@ -170,7 +170,7 @@ def handle_update(update):
         query_tfidf_vector = tfidf_vectorizer.transform(query_string_list)
         query_tfidf_array = query_tfidf_vector.toarray()[0]
         
-        user_vector_query = UserVectors.query.with_entities(UserVectors.chat_id, UserVectors.user_id, UserVectors.vector)
+        user_vector_query = UserVectors.query.filter_by(chat_id=chat_id).with_entities(UserVectors.chat_id, UserVectors.user_id, UserVectors.vector)
         user_vector_dataframe = pd.read_sql(user_vector_query.statement, user_vector_query.session.bind)
         user_vectors_list = user_vector_dataframe['vector'].to_list()
         print("User vector array is", user_vectors_list)
