@@ -24,6 +24,6 @@ class UserVectors(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     chat_id = db.Column(db.Integer)
     user_id = db.Column(db.Integer)
-    vector = db.Column(db.ARRAY(db.Float), default=dict)
+    vector = db.Column(db.ARRAY(db.Float), default=list)
 
 
