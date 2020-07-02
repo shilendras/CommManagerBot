@@ -9,7 +9,8 @@ from bs4.element import Comment
 
 from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
-from collections import Counter 
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction.text import TfidfVectorizer
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] ='postgres://dhdbiabpoktcen:6b21775a670b9eeb8dc7ef4e12e5f87001f8c7fc224fe18b88858f862bbf1c56@ec2-107-22-7-9.compute-1.amazonaws.com:5432/d51gcce3c527k2'
@@ -39,78 +40,61 @@ def tag_visible(element):
     return True
 
 # function to clean the scrapped threat data and return a string 
-def clean_and_tokenize_data(data):
+def clean_up_text(text_string):
 
     # removes all html tags
     cleaner = re.compile('<.*?>')
-    data = re.sub(cleaner, '', data)
+    text_string = re.sub(cleaner, '', text_string)
 
     # removes all non words
-    data = re.sub("[^A-Za-z]", " ", data) 
+    text_string = re.sub("[^A-Za-z]", " ", text_string) 
 
     # converts to lower case
-    data = data.lower()                   
+    text_string = text_string.lower()                   
 
-    # converts to list of words
-    data = word_tokenize(data)  
+    return text_string
 
-
+def stop_words_and_tokenize(text_string):
+    tokenized_words = word_tokenize(text_string)  
     # removes all common words like 'a', 'the' etc          
-    data = [ word for word in data if word not in set(stopwords.words("english"))] 
+    tokenized_words = [ word for word in tokenized_words if word not in set(stopwords.words("english"))] 
 
-    return data
+    return tokenized_words
 
-def get_keywords(link_list):
 
-    text_in_links = ''
+def get_text_from_links(link_list):
+
+    final_text = ''
     for link in link_list:
         r = requests.get(link)
         if r:
-            # parses the request content using html5lib parser
+            # parses the request content using html parser
             soup = BeautifulSoup(r.content, 'html.parser') 
-            texts = soup.findAll(text=True)
-            visible_texts = filter(tag_visible, texts)  
-            text_string = u" ".join(t.strip() for t in visible_texts)
-            text_in_links += text_string
+            texts = soup.findAll('p')
+            # visible_texts = filter(tag_visible, texts)  
+            text_string = u" ".join(t.strip() for t in texts)
+            cleaned_text = clean_up_text(text_string)
+            final_text += cleaned_text
     
-    cleaned_words_list = clean_and_tokenize_data(text_in_links)
-    counter = Counter(cleaned_words_list)
-    most_freq_words = counter.most_common(6)
-    
-    return most_freq_words
+    return final_text
 
 def get_response(update):
 
     chat_id = update.message.chat.id
-    print("Type of chat id is" ,type(chat_id))
     from_id = update.message.from_user.id
     from_username = update.message.from_user.username
-    print("From id and username is", from_username, from_id)
     text = update.message.text.encode('utf-8').decode()
 
     link_list = get_link_list(text)
     if not link_list == []:
-        try:
-            user_object = UserData.query.filter_by(chat_id=chat_id, user_id=from_id).first()
-            existing_keywords = json.loads(user_object.keywords)
-        except Exception as e:
-            print("exception is", e)
-            db.session.rollback()
-            existing_keywords = []
-            user_object = UserData(chat_id=chat_id, user_id=from_id, username=from_username)
-            db.session.add(user_object)
-
-        new_keywords_tuple = get_keywords(link_list)
-        words_str = 'The top keywords in the links are: '
-        for keyword_tuple in new_keywords_tuple:
-            existing_keywords.append(keyword_tuple[0])
-            words_str += keyword_tuple[0] + ", "
-        
-        user_object.keywords = json.dumps(existing_keywords)
+        link_text = get_text_from_links(link_list)
+        user_object = UserData(chat_id=chat_id, user_id=from_id, username=from_username, text=link_text)
+        db.session.add(user_object)
         db.session.commit()
-        response = words_str
+        response = ""
+        
     elif link_list == []:
-        response = "No link shared"
+        response = ""
 
     return response
 

@@ -6,7 +6,7 @@ class UserData(db.Model):
     username = db.Column(db.String(64))
     user_id = db.Column(db.Integer)
     chat_id = db.Column(db.Integer)
-    keywords = db.Column(db.Text, nullable=True)
+    text = db.Column(db.Text, nullable=True)
 
     def __repr__(self):
         return '<User %r>' % (self.username)
