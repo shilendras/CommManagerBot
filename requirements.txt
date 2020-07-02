@@ -55,4 +55,5 @@ wasabi==0.7.0
 Werkzeug==1.0.1
 yarl==1.4.2
 zipp==3.1.0
+https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-2.2.5/en_core_web_sm-2.2.5.tar.gz#egg=en_core_web_sm
 gunicorn==20.0.4
