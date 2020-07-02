@@ -11,6 +11,7 @@ from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfVectorizer
+import pandas as pd
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] ='postgres://dhdbiabpoktcen:6b21775a670b9eeb8dc7ef4e12e5f87001f8c7fc224fe18b88858f862bbf1c56@ec2-107-22-7-9.compute-1.amazonaws.com:5432/d51gcce3c527k2'
@@ -26,6 +27,14 @@ TOKEN = '978043287:AAEIUgZ8BlHFzC3fZ8FI_p0s5J_H1pCMVrM'
 bot = telegram.Bot(token=TOKEN)
 bot_user_name = "CommManagerBot"
 URL = "https://comm-manager-bot.herokuapp.com/"
+
+def save_tfidf_group_models():
+    text_query = LinkData.query.with_entities(LinkData.chat_id, LinkData.text)
+    text_dataframe = pd.read_sql(text_query.statement, text_query.session.bind)
+    print(text_dataframe.head())
+
+    return "ok"
+
 
 
 def get_link_list(text):
@@ -133,6 +142,7 @@ def respond():
         chat_id = update.message.chat.id
         msg_id = update.message.message_id
         response = handle_update(update)
+        save_tfidf_group_models()
 
         if not response == "":
             bot.sendMessage(chat_id=chat_id, text=response, reply_to_message_id=msg_id)
