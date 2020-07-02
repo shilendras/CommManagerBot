@@ -78,7 +78,7 @@ def get_text_from_links(link_list):
     
     return final_text
 
-def get_response(update):
+def handle_update(update):
 
     chat_id = update.message.chat.id
     from_id = update.message.from_user.id
@@ -88,8 +88,8 @@ def get_response(update):
     link_list = get_link_list(text)
     if not link_list == []:
         link_text = get_text_from_links(link_list)
-        user_object = LinkData(chat_id=chat_id, user_id=from_id, username=from_username, text=link_text)
-        db.session.add(user_object)
+        link_object = LinkData(chat_id=chat_id, user_id=from_id, username=from_username, text=link_text)
+        db.session.add(link_object)
         db.session.commit()
         response = ""
 
@@ -123,7 +123,7 @@ def respond():
     else:
         chat_id = update.message.chat.id
         msg_id = update.message.message_id
-        response = get_response(update)
+        response = handle_update(update)
 
         if not response == "":
             bot.sendMessage(chat_id=chat_id, text=response, reply_to_message_id=msg_id)
