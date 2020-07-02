@@ -41,7 +41,7 @@ def save_tfidf_group_models():
     text_dataframe = pd.read_sql(text_query.statement, text_query.session.bind)
     grouped_text_dataframe = text_dataframe.groupby('chat_id')['text'].apply(list)
     for chat_id, corpus in grouped_text_dataframe.iteritems():
-        tfidf_vectorizer = TfidfVectorizer(ngram_range = (1,1), max_df=0.85, max_features=1000, tokenizer = my_tokenizer)
+        tfidf_vectorizer = TfidfVectorizer(ngram_range = (1,1), max_features=1000, tokenizer = my_tokenizer)
         tfidf_model = tfidf_vectorizer.fit(corpus)
         tfidf_pickle_string = pickle.dumps(tfidf_vectorizer)
         try:
