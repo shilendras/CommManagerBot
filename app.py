@@ -70,9 +70,6 @@ def save_user_models():
         total_user_text_list = [total_user_text]
         user_tfidf_vector = tfidf_vectorizer.transform(total_user_text_list)
         user_tfidf_array = user_tfidf_vector.toarray()[0]
-        print("Array is", user_tfidf_array)
-        print("Type is", type(user_tfidf_array))
-        print("type of each value is", type(user_tfidf_array[0]))
         try:
             user_vector_obj = UserVectors.query.filter_by(chat_id=chat_id, user_id=user_id).first()
             user_vector_obj.vector = user_tfidf_array
