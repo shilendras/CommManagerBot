@@ -55,7 +55,14 @@ def save_user_models():
     text_dataframe = pd.read_sql(text_query.statement, text_query.session.bind)
     grouped_text_dataframe = text_dataframe.groupby(['chat_id', 'user_id'], as_index=False)['text'].apply(list)
     for key, value in grouped_text_dataframe.iteritems():
-        print("Key and value are", key, value)
+        chat_id = key[0]
+        tfidf_model_obj = ChatTfidf.query.filter_by(chat_id=chat_id).first()
+        tfidf_vectorizer = pickle.loads(tfidf_model_obj.tfidf_model)
+        total_user_text = " ".join(text_string for text_string in value).tolist()
+        user_tfidf_vector = tfidf_vectorizer.transform(total_user_text)
+        user_tfidf_array = user_tfidf_vector.toarray()[0]
+        print("Array is", user_tfidf_array)
+        print("Type is", type(user_tfidf_array))
     
     return "ok"
 
