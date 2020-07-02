@@ -64,6 +64,7 @@ def save_user_models():
         user_tfidf_array = user_tfidf_vector.toarray()[0]
         print("Array is", user_tfidf_array)
         print("Type is", type(user_tfidf_array))
+        print("type of each value is", type(user_tfidf_array[0]))
     
     return "ok"
 

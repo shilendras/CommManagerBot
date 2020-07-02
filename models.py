@@ -1,4 +1,5 @@
 from manage import db,app
+from sqlalchemy.dialects import postgresql
 
 class LinkData(db.Model):
 
