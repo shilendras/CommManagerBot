@@ -17,7 +17,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] ='postgres://dhdbiabpoktcen:6b21775a670b9e
 
 db = SQLAlchemy(app)
 
-from models import UserData
+from models import LinkData
 
 global bot
 global TOKEN
@@ -88,11 +88,11 @@ def get_response(update):
     link_list = get_link_list(text)
     if not link_list == []:
         link_text = get_text_from_links(link_list)
-        user_object = UserData(chat_id=chat_id, user_id=from_id, username=from_username, text=link_text)
+        user_object = LinkData(chat_id=chat_id, user_id=from_id, username=from_username, text=link_text)
         db.session.add(user_object)
         db.session.commit()
         response = ""
-        
+
     elif link_list == []:
         response = ""
 
