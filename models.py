@@ -1,6 +1,6 @@
 from manage import db,app
 
-class UserData(db.Model):
+class LinkData(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64))
