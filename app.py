@@ -12,13 +12,14 @@ from nltk.corpus import stopwords
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfVectorizer
 import pandas as pd
+import pickle
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] ='postgres://dhdbiabpoktcen:6b21775a670b9eeb8dc7ef4e12e5f87001f8c7fc224fe18b88858f862bbf1c56@ec2-107-22-7-9.compute-1.amazonaws.com:5432/d51gcce3c527k2'
 
 db = SQLAlchemy(app)
 
-from models import LinkData
+from models import LinkData, ChatTfidf
 
 global bot
 global TOKEN
@@ -32,9 +33,20 @@ def save_tfidf_group_models():
     text_query = LinkData.query.with_entities(LinkData.chat_id, LinkData.text)
     text_dataframe = pd.read_sql(text_query.statement, text_query.session.bind)
     grouped_text_dataframe = text_dataframe.groupby('chat_id')['text'].apply(list)
-    for key, value in grouped_text_dataframe.iteritems():
-        corpus = value[0]
-        print("corpus of {} is {}".format(key, corpus))
+    for chat_id, corpus in grouped_text_dataframe.iteritems():
+        tfidf_vectorizer = TfidfVectorizer(ngram_range = (1,1))
+        tfidf_model = tfidf_vectorizer.fit(corpus)
+        tfidf_pickle_string = pickle.dumps(tfidf_vectorizer)
+        try:
+            chat_tf_obj = ChatTfidf.query.filter_by(chat_id=chat_id).first()
+            chat_tf_obj.tfidf_model = tfidf_pickle_string
+        except:
+            db.session.rollback()
+            chat_tf_obj = ChatTfidf(chat_id=chat_id, tfidf_model=tfidf_pickle_string)
+            db.session.add(chat_tf_obj)
+        
+        db.session.commit()
+
 
     return "ok"
 

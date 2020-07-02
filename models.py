@@ -10,3 +10,12 @@ class LinkData(db.Model):
 
     def __repr__(self):
         return '<User %r>' % (self.username)
+
+class ChatTfidf(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    chat_id = db.Column(db.Integer)
+    tfidf_model = db.Column(db.PickleType, nullable=True)
+
+    def __repr__(self):
+        return '<Chat id %r>' % (self.chat_id)
+
