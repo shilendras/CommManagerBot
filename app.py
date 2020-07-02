@@ -50,6 +50,15 @@ def save_tfidf_group_models():
 
     return "ok"
 
+def save_user_models():
+    text_query = LinkData.query.with_entities(LinkData.chat_id, LinkData.user_id, LinkData.text)
+    text_dataframe = pd.read_sql(text_query.statement, text_query.session.bind)
+    grouped_text_dataframe = text_dataframe.groupby(['chat_id', 'user_id'], as_index=False)['text'].apply(list)
+    for key, value in grouped_text_dataframe.iteritems():
+        print("Key and value are", key, value)
+    
+    return "ok"
+
 
 
 def get_link_list(text):
@@ -158,6 +167,7 @@ def respond():
         msg_id = update.message.message_id
         response = handle_update(update)
         save_tfidf_group_models()
+        save_user_models()
 
         if not response == "":
             bot.sendMessage(chat_id=chat_id, text=response, reply_to_message_id=msg_id)
