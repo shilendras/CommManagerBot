@@ -19,7 +19,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] ='postgres://dhdbiabpoktcen:6b21775a670b9e
 
 db = SQLAlchemy(app)
 
-from models import LinkData, ChatTfidf
+from models import LinkData, ChatTfidf, UserVectors
 
 global bot
 global TOKEN
@@ -56,6 +56,7 @@ def save_user_models():
     grouped_text_dataframe = text_dataframe.groupby(['chat_id', 'user_id'], as_index=False)['text'].apply(list)
     for key, value in grouped_text_dataframe.iteritems():
         chat_id = key[0]
+        user_id = key[1]
         tfidf_model_obj = ChatTfidf.query.filter_by(chat_id=chat_id).first()
         tfidf_vectorizer = pickle.loads(tfidf_model_obj.tfidf_model)
         total_user_text = " ".join(text_string for text_string in value)
@@ -65,7 +66,16 @@ def save_user_models():
         print("Array is", user_tfidf_array)
         print("Type is", type(user_tfidf_array))
         print("type of each value is", type(user_tfidf_array[0]))
-    
+        try:
+            user_vector_obj = UserVectors.query.filter_by(chat_id=chat_id, user_id=user_id).first()
+            user_vector_obj.vector = user_tfidf_array
+        except:
+            db.session.rollback()
+            user_vector_obj = UserVectors(chat_id=chat_id, user_id=user_id, vector=user_tfidf_array)
+            db.session.add(user_vector_obj)
+        
+        db.session.commit()
+        
     return "ok"
 
 
