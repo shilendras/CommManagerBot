@@ -31,7 +31,7 @@ URL = "https://comm-manager-bot.herokuapp.com/"
 def save_tfidf_group_models():
     text_query = LinkData.query.with_entities(LinkData.chat_id, LinkData.text)
     text_dataframe = pd.read_sql(text_query.statement, text_query.session.bind)
-    grouped_text_dataframe = text_dataframe.group_by('chat_id')['text'].apply(list)
+    grouped_text_dataframe = text_dataframe.groupby('chat_id')['text'].apply(list)
     for key, value in grouped_text_dataframe.iteritems():
         corpus = value[0]
         print("corpus of {} is {}".format(key, corpus))
