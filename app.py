@@ -13,6 +13,7 @@ from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfVectorizer
 import pandas as pd
 import pickle
+import spacy
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] ='postgres://dhdbiabpoktcen:6b21775a670b9eeb8dc7ef4e12e5f87001f8c7fc224fe18b88858f862bbf1c56@ec2-107-22-7-9.compute-1.amazonaws.com:5432/d51gcce3c527k2'
@@ -29,12 +30,18 @@ bot = telegram.Bot(token=TOKEN)
 bot_user_name = "CommManagerBot"
 URL = "https://comm-manager-bot.herokuapp.com/"
 
+lemmatizer = spacy.load('en_core_web_sm', disable=['parser', 'ner'])
+
+def my_tokenizer(text_string):
+    tokens = lemmatizer(text_string)
+    return([token.lemma_ for token in tokens])
+
 def save_tfidf_group_models():
     text_query = LinkData.query.with_entities(LinkData.chat_id, LinkData.text)
     text_dataframe = pd.read_sql(text_query.statement, text_query.session.bind)
     grouped_text_dataframe = text_dataframe.groupby('chat_id')['text'].apply(list)
     for chat_id, corpus in grouped_text_dataframe.iteritems():
-        tfidf_vectorizer = TfidfVectorizer(ngram_range = (1,1))
+        tfidf_vectorizer = TfidfVectorizer(ngram_range = (1,1), max_df=0.85, max_features=1000, tokenizer = my_tokenizer)
         tfidf_model = tfidf_vectorizer.fit(corpus)
         tfidf_pickle_string = pickle.dumps(tfidf_vectorizer)
         try:
@@ -192,8 +199,8 @@ def respond():
     else:
         chat_id = update.message.chat.id
         msg_id = update.message.message_id
-        # save_tfidf_group_models()
-        # save_user_models()
+        save_tfidf_group_models()
+        save_user_models()
         response = handle_update(update)
 
         if not response == "":
