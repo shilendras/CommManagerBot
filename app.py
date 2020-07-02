@@ -72,7 +72,7 @@ def get_text_from_links(link_list):
             soup = BeautifulSoup(r.content, 'html.parser') 
             texts = soup.findAll(text=True)
             visible_texts = filter(tag_visible, texts)  
-            text_string = u" ".join(t.strip() for t in texts)
+            text_string = u" ".join(t.strip() for t in visible_texts)
             cleaned_text = clean_up_text(text_string)
             final_text += cleaned_text
     
