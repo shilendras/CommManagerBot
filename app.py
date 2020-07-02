@@ -169,7 +169,9 @@ def handle_update(update):
         
         user_vector_query = UserVectors.query.with_entities(UserVectors.chat_id, UserVectors.user_id, UserVectors.vector)
         user_vector_dataframe = pd.read_sql(user_vector_query.statement, user_vector_query.session.bind)
-        user_vectors_array = user_vector_dataframe['vector'].to_list()
+        user_vectors_array = user_vector_dataframe['vector'].to_numpy()
+        print("User vector array is" user_vectors_array)
+        print("Type of user vector array is", type(user_vectors_array))
         user_id_list = user_vector_dataframe['user_id'].to_list()
 
         cosine_similarity_matrix = cosine_similarity(user_vectors_array, query_tfidf_array.reshape(1, -1))
