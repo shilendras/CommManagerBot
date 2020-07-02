@@ -58,8 +58,9 @@ def save_user_models():
         chat_id = key[0]
         tfidf_model_obj = ChatTfidf.query.filter_by(chat_id=chat_id).first()
         tfidf_vectorizer = pickle.loads(tfidf_model_obj.tfidf_model)
-        total_user_text = " ".join(text_string for text_string in value).tolist()
-        user_tfidf_vector = tfidf_vectorizer.transform(total_user_text)
+        total_user_text = " ".join(text_string for text_string in value)
+        total_user_text_list = [total_user_text]
+        user_tfidf_vector = tfidf_vectorizer.transform(total_user_text_list)
         user_tfidf_array = user_tfidf_vector.toarray()[0]
         print("Array is", user_tfidf_array)
         print("Type is", type(user_tfidf_array))
