@@ -70,7 +70,10 @@ def save_user_models():
         total_user_text = " ".join(text_string for text_string in value)
         total_user_text_list = [total_user_text]
         user_tfidf_vector = tfidf_vectorizer.transform(total_user_text_list)
-        user_tfidf_array = user_tfidf_vector.toarray()[0]
+        user_tfidf_arrays = user_tfidf_vector.toarray()
+        print("Created array is", user_tfidf_arrays)
+        print("Type of created array is", type(user_tfidf_arrays))
+        user_tfidf_array = user_tfidf_arrays[0]
         try:
             user_vector_obj = UserVectors.query.filter_by(chat_id=chat_id, user_id=user_id).first()
             user_vector_obj.vector = user_tfidf_array
@@ -180,7 +183,7 @@ def handle_update(update):
         user_vectors_array = np.array(new_user_vectors_list)
         print("User vector numpy array is", user_vectors_array)
         print("Type of user vector numpy array is", type(user_vectors_array))
-        
+
         user_id_list = user_vector_dataframe['user_id'].to_list()
 
         cosine_similarity_matrix = cosine_similarity(user_vectors_array, query_tfidf_array.reshape(1, -1))
