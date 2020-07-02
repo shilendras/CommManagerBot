@@ -9,9 +9,10 @@ from bs4.element import Comment
 
 from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
-from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
 import pandas as pd
+import numpy as np
 import pickle
 import spacy
 
@@ -165,9 +166,19 @@ def handle_update(update):
         query_string_list = [cleaned_query_string]
         query_tfidf_vector = tfidf_vectorizer.transform(query_string_list)
         query_tfidf_array = query_tfidf_vector.toarray()[0]
-        print(query_tfidf_array)
+        
+        user_vector_query = UserVectors.query.with_entities(UserVectors.chat_id, UserVectors.user_id, UserVectors.vector)
+        user_vector_dataframe = pd.read_sql(user_vector_query.statement, user_vector_query.session.bind)
+        user_vectors_array = user_vector_dataframe['vector'].to_list()
+        user_id_list = user_vector_dataframe['user_id'].to_list()
 
-        response = ""
+        cosine_similarity_matrix = cosine_similarity(user_vectors_array, query_tfidf_array.reshape(1, -1))
+        cosine_similarity_list = [value for sublist in cosine_similarity_matrix for value in sublist]
+        top_index = np.argsort(cosine_similarity_list)[-1]
+        top_similarity_value = cosine_similarity_list[top_index]
+        top_user_id = user_id_list[top_index]
+
+        response = "{} might be able to answer your question with a confidence of {}".format(top_user_id, top_similarity_value)
 
     return response
 
