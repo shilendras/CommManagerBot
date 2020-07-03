@@ -158,8 +158,8 @@ def isQuery(text):
     words = text.split()
     words = [word.lower() for word in words]
     print(words)
-    
-    if re.match(r'\w+?\?\w*', text):
+
+    if re.match(r'.*\?.*', text):
         print("Entered ? match")
         return True
     elif bool([word for word in words if word in wh_words]):
