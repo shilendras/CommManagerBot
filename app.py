@@ -232,7 +232,7 @@ def home():
 def set_webhook():
     # we use the bot object to link the bot to our app which live
     # in the link provided by URL
-    s = bot.set_webhook(URL, allowed_updates=['message', 'callback_query'])
+    s = bot.set_webhook(URL + TOKEN, allowed_updates=['message', 'callback_query'])
     # something to let us know things work
     if s:
         return "webhook setup ok"
