@@ -195,7 +195,7 @@ def handle_update(update):
         top_similarity_value = cosine_similarity_list[top_index]
         top_user_id = user_id_list[top_index]
 
-        response = "{} might be able to answer your question with a confidence of {}".format(top_user_id, top_similarity_value)
+        response = "[inline mention of a user](tg://user?id={}) might be able to answer your question with a confidence of {}".format(top_user_id, top_similarity_value)
 
     return response
 
@@ -229,7 +229,7 @@ def respond():
         response = handle_update(update)
 
         if not response == "":
-            bot.sendMessage(chat_id=chat_id, text=response, reply_to_message_id=msg_id)
+            bot.sendMessage(chat_id=chat_id, text=response, reply_to_message_id=msg_id, parse_mode="Markdown")
 
     return 'ok'
 
