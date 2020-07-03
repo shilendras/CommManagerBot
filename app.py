@@ -32,17 +32,23 @@ bot_user_name = "CommManagerBot"
 URL = "https://comm-manager-bot.herokuapp.com/"
 
 lemmatizer = spacy.load('en_core_web_sm', disable=['parser', 'ner'])
+stopwords_english = set(stopwords.words("english"))
+
 
 def my_tokenizer(text_string):
     tokens = lemmatizer(text_string)
     return([token.lemma_ for token in tokens])
 
+tfidf_vectorizer = TfidfVectorizer(ngram_range = (1,1), max_features=1000, tokenizer = my_tokenizer)
+
 def save_tfidf_group_models():
+    
+    global tfidf_vectorizer
+
     text_query = LinkData.query.with_entities(LinkData.chat_id, LinkData.text)
     text_dataframe = pd.read_sql(text_query.statement, text_query.session.bind)
     grouped_text_dataframe = text_dataframe.groupby('chat_id')['text'].apply(list)
     for chat_id, corpus in grouped_text_dataframe.iteritems():
-        tfidf_vectorizer = TfidfVectorizer(ngram_range = (1,1), max_features=1000, tokenizer = my_tokenizer)
         tfidf_model = tfidf_vectorizer.fit(corpus)
         tfidf_pickle_string = pickle.dumps(tfidf_vectorizer)
         try:
@@ -72,8 +78,6 @@ def save_user_models():
         total_user_text_list = [total_user_text]
         user_tfidf_vector = tfidf_vectorizer.transform(total_user_text_list)
         user_tfidf_arrays = user_tfidf_vector.toarray()
-        print("Created array is", user_tfidf_arrays)
-        print("Type of created array is", type(user_tfidf_arrays))
         user_tfidf_array = user_tfidf_arrays[0]
         try:
             user_vector_obj = UserVectors.query.filter_by(chat_id=chat_id, user_id=user_id).first()
@@ -103,6 +107,8 @@ def tag_visible(element):
 # function to clean the scrapped threat data and return a string 
 def clean_up_text(text_string):
 
+    global stopwords_english
+
     # removes all html tags
     cleaner = re.compile('<.*?>')
     text_string = re.sub(cleaner, '', text_string)
@@ -115,18 +121,11 @@ def clean_up_text(text_string):
 
     tokenized_words = word_tokenize(text_string)  
     # removes all common words like 'a', 'the' etc          
-    tokenized_words = [ word for word in tokenized_words if word not in set(stopwords.words("english"))]
+    tokenized_words = [ word for word in tokenized_words if word not in stopwords_english]
 
     text_string = " ".join(word for word in tokenized_words)                    
 
     return text_string
-
-def stop_words_and_tokenize(text_string):
-    tokenized_words = word_tokenize(text_string)  
-    # removes all common words like 'a', 'the' etc          
-    tokenized_words = [ word for word in tokenized_words if word not in set(stopwords.words("english"))] 
-
-    return tokenized_words
 
 
 def get_text_from_links(link_list):
@@ -183,6 +182,10 @@ def handle_update(update):
         link_object = LinkData(chat_id=chat_id, user_id=from_id, username=from_username, firstname=from_firstname, text=link_text)
         db.session.add(link_object)
         db.session.commit()
+
+        save_tfidf_group_models()
+        save_user_models()
+
         response = ""
 
     elif link_list == []:
@@ -246,8 +249,6 @@ def respond():
     else:
         chat_id = update.message.chat.id
         msg_id = update.message.message_id
-        save_tfidf_group_models()
-        save_user_models()
         response = handle_update(update)
 
         if not response == "":
