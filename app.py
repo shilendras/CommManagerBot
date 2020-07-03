@@ -247,12 +247,14 @@ def respond():
     except ValueError:
         return make_response('Invalid request body', 400)
     else:
-        chat_id = update.message.chat.id
-        msg_id = update.message.message_id
-        response = handle_update(update)
+        print(type(update.message))
+        if not update.message == None:
+            chat_id = update.message.chat.id
+            msg_id = update.message.message_id
+            response = handle_update(update)
 
-        if not response == "":
-            bot.sendMessage(chat_id=chat_id, text=response, reply_to_message_id=msg_id, parse_mode="Markdown")
+            if not response == "":
+                bot.sendMessage(chat_id=chat_id, text=response, reply_to_message_id=msg_id, parse_mode="Markdown")
 
     return 'ok'
 
