@@ -42,7 +42,7 @@ def my_tokenizer(text_string):
 tfidf_vectorizer = TfidfVectorizer(ngram_range = (1,1), max_features=1000, tokenizer = my_tokenizer)
 
 def save_tfidf_group_models():
-    
+
     global tfidf_vectorizer
 
     text_query = LinkData.query.with_entities(LinkData.chat_id, LinkData.text)
@@ -232,7 +232,7 @@ def home():
 def set_webhook():
     # we use the bot object to link the bot to our app which live
     # in the link provided by URL
-    s = bot.setWebhook('{URL}{HOOK}'.format(URL=URL, HOOK=TOKEN))
+    s = bot.setWebhook('{URL}{HOOK}'.format(URL=URL, HOOK=TOKEN), allowed_updates=["message"])
     # something to let us know things work
     if s:
         return "webhook setup ok"
