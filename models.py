@@ -5,6 +5,7 @@ class LinkData(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64))
+    firstname = db.Column(db.String(64))
     user_id = db.Column(db.Integer)
     chat_id = db.Column(db.Integer)
     text = db.Column(db.Text, nullable=True)
@@ -24,6 +25,7 @@ class UserVectors(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     chat_id = db.Column(db.Integer)
     user_id = db.Column(db.Integer)
+    firstname = db.Column(db.String(64))
     vector = db.Column(db.ARRAY(db.Float), default=list)
 
 

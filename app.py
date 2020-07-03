@@ -59,12 +59,13 @@ def save_tfidf_group_models():
     return "ok"
 
 def save_user_models():
-    text_query = LinkData.query.with_entities(LinkData.chat_id, LinkData.user_id, LinkData.text)
+    text_query = LinkData.query.with_entities(LinkData.chat_id, LinkData.user_id, LinkData.firstname, LinkData.text)
     text_dataframe = pd.read_sql(text_query.statement, text_query.session.bind)
-    grouped_text_dataframe = text_dataframe.groupby(['chat_id', 'user_id'], as_index=False)['text'].apply(list)
+    grouped_text_dataframe = text_dataframe.groupby(['chat_id', 'user_id', 'firstname'], as_index=False)['text'].apply(list)
     for key, value in grouped_text_dataframe.iteritems():
         chat_id = key[0]
         user_id = key[1]
+        firstname = key[2]
         tfidf_model_obj = ChatTfidf.query.filter_by(chat_id=chat_id).first()
         tfidf_vectorizer = pickle.loads(tfidf_model_obj.tfidf_model)
         total_user_text = " ".join(text_string for text_string in value)
@@ -79,7 +80,7 @@ def save_user_models():
             user_vector_obj.vector = user_tfidf_array
         except:
             db.session.rollback()
-            user_vector_obj = UserVectors(chat_id=chat_id, user_id=user_id, vector=user_tfidf_array)
+            user_vector_obj = UserVectors(chat_id=chat_id, user_id=user_id, firstname=firstname, vector=user_tfidf_array)
             db.session.add(user_vector_obj)
         
         db.session.commit()
@@ -152,12 +153,13 @@ def handle_update(update):
     chat_id = update.message.chat.id
     from_id = update.message.from_user.id
     from_username = update.message.from_user.username
+    from_firstname = update.message.from_user.first_name
     text = update.message.text.encode('utf-8').decode()
 
     link_list = get_link_list(text)
     if not link_list == []:
         link_text = get_text_from_links(link_list)
-        link_object = LinkData(chat_id=chat_id, user_id=from_id, username=from_username, text=link_text)
+        link_object = LinkData(chat_id=chat_id, user_id=from_id, username=from_username, firstname=from_firstname, text=link_text)
         db.session.add(link_object)
         db.session.commit()
         response = ""
@@ -170,7 +172,7 @@ def handle_update(update):
         query_tfidf_vector = tfidf_vectorizer.transform(query_string_list)
         query_tfidf_array = query_tfidf_vector.toarray()[0]
         
-        user_vector_query = UserVectors.query.filter_by(chat_id=chat_id).with_entities(UserVectors.chat_id, UserVectors.user_id, UserVectors.vector)
+        user_vector_query = UserVectors.query.filter_by(chat_id=chat_id).with_entities(UserVectors.chat_id, UserVectors.user_id, UserVectors.firstname, UserVectors.vector)
         user_vector_dataframe = pd.read_sql(user_vector_query.statement, user_vector_query.session.bind)
         user_vectors_list = user_vector_dataframe['vector'].to_list()
         print("User vector array is", user_vectors_list)
@@ -188,14 +190,16 @@ def handle_update(update):
         print("Type of one user vector numpy array is", type(user_vectors_array[0]))
 
         user_id_list = user_vector_dataframe['user_id'].to_list()
+        user_firstname_list = user_vector_dataframe['firstname'].to_list()
 
         cosine_similarity_matrix = cosine_similarity(user_vectors_array, query_tfidf_array.reshape(1, -1))
         cosine_similarity_list = [value for sublist in cosine_similarity_matrix for value in sublist]
         top_index = np.argsort(cosine_similarity_list)[-1]
         top_similarity_value = cosine_similarity_list[top_index]
         top_user_id = user_id_list[top_index]
+        top_user_name = user_firstname_list[top_index]
 
-        response = "[inline mention of a user](tg://user?id={}) might be able to answer your question with a confidence of {}".format(top_user_id, top_similarity_value)
+        response = "[{}](tg://user?id={}) might be able to answer your question with a confidence of {}".format(top_user_name, top_user_id, top_similarity_value)
 
     return response
 
