@@ -148,6 +148,24 @@ def get_text_from_links(link_list):
     
     return final_text
 
+def isQuery(text):
+    ''' 
+    description: Takes in a text string and return true if it is a query.
+    args: input text string
+    returns: boolean
+    '''
+    wh_words = ["what", "when", "why", "how"]
+    words = text.split()
+    words = [word.lower() for word in words]
+
+    if re.match(r'\w+?\?\w*', text):
+        return True
+    elif words in wh_words:
+        return True
+    
+    return False
+
+
 def handle_update(update):
 
     chat_id = update.message.chat.id
@@ -165,41 +183,38 @@ def handle_update(update):
         response = ""
 
     elif link_list == []:
-        tfidf_model_obj = ChatTfidf.query.filter_by(chat_id=chat_id).first()
-        tfidf_vectorizer = pickle.loads(tfidf_model_obj.tfidf_model)
-        cleaned_query_string = clean_up_text(text)
-        query_string_list = [cleaned_query_string]
-        query_tfidf_vector = tfidf_vectorizer.transform(query_string_list)
-        query_tfidf_array = query_tfidf_vector.toarray()[0]
-        
-        user_vector_query = UserVectors.query.filter_by(chat_id=chat_id).with_entities(UserVectors.chat_id, UserVectors.user_id, UserVectors.firstname, UserVectors.vector)
-        user_vector_dataframe = pd.read_sql(user_vector_query.statement, user_vector_query.session.bind)
-        user_vectors_list = user_vector_dataframe['vector'].to_list()
-        print("User vector array is", user_vectors_list)
-        print("Type of user vector array is", type(user_vectors_list))
-        print("Type of one user vector is", type(user_vectors_list[0]))
+        isQuestion = isQuery(text)
+        if isQuestion:
+            tfidf_model_obj = ChatTfidf.query.filter_by(chat_id=chat_id).first()
+            tfidf_vectorizer = pickle.loads(tfidf_model_obj.tfidf_model)
+            cleaned_query_string = clean_up_text(text)
+            query_string_list = [cleaned_query_string]
+            query_tfidf_vector = tfidf_vectorizer.transform(query_string_list)
+            query_tfidf_array = query_tfidf_vector.toarray()[0]
+            
+            user_vector_query = UserVectors.query.filter_by(chat_id=chat_id).with_entities(UserVectors.chat_id, UserVectors.user_id, UserVectors.firstname, UserVectors.vector)
+            user_vector_dataframe = pd.read_sql(user_vector_query.statement, user_vector_query.session.bind)
+            user_vectors_list = user_vector_dataframe['vector'].to_list()
 
-        new_user_vectors_list = []
-        for user_vector_list in user_vectors_list:
-            user_vector_array = np.array(user_vector_list, dtype='float')
-            new_user_vectors_list.append(user_vector_array)
+            new_user_vectors_list = []
+            for user_vector_list in user_vectors_list:
+                user_vector_array = np.array(user_vector_list, dtype='float')
+                new_user_vectors_list.append(user_vector_array)
 
-        user_vectors_array = np.stack(new_user_vectors_list)
-        print("User vector numpy array is", user_vectors_array)
-        print("Type of user vector numpy array is", type(user_vectors_array))
-        print("Type of one user vector numpy array is", type(user_vectors_array[0]))
+            user_vectors_array = np.stack(new_user_vectors_list)
+            user_id_list = user_vector_dataframe['user_id'].to_list()
+            user_firstname_list = user_vector_dataframe['firstname'].to_list()
 
-        user_id_list = user_vector_dataframe['user_id'].to_list()
-        user_firstname_list = user_vector_dataframe['firstname'].to_list()
+            cosine_similarity_matrix = cosine_similarity(user_vectors_array, query_tfidf_array.reshape(1, -1))
+            cosine_similarity_list = [value for sublist in cosine_similarity_matrix for value in sublist]
+            top_index = np.argsort(cosine_similarity_list)[-1]
+            top_similarity_value = cosine_similarity_list[top_index]
+            top_user_id = user_id_list[top_index]
+            top_user_name = user_firstname_list[top_index]
 
-        cosine_similarity_matrix = cosine_similarity(user_vectors_array, query_tfidf_array.reshape(1, -1))
-        cosine_similarity_list = [value for sublist in cosine_similarity_matrix for value in sublist]
-        top_index = np.argsort(cosine_similarity_list)[-1]
-        top_similarity_value = cosine_similarity_list[top_index]
-        top_user_id = user_id_list[top_index]
-        top_user_name = user_firstname_list[top_index]
-
-        response = "[{}](tg://user?id={}) might be able to answer your question with a confidence of {}".format(top_user_name, top_user_id, top_similarity_value)
+            response = "[{}](tg://user?id={}) might be able to answer your question with a confidence of {}".format(top_user_name, top_user_id, top_similarity_value)
+        else:
+            response = ""
 
     return response
 
