@@ -157,10 +157,12 @@ def isQuery(text):
     wh_words = ["what", "when", "why", "how"]
     words = text.split()
     words = [word.lower() for word in words]
-
+    print(words)
     if re.match(r'\w+?\?\w*', text):
+        print("Entered ? match")
         return True
     elif words in wh_words:
+        print("Entered wh match")
         return True
     
     return False
